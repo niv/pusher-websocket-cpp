@@ -75,6 +75,7 @@ public:
 	 */
 	pushcpp(
 		const std::string &appKey,
+		const std::string &cluster,
 		ConnectionEventHandler ch = NULL,
 		ErrorEventHandler eh = NULL
 	);

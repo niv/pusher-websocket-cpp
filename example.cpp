@@ -6,12 +6,12 @@ using namespace std;
 void cn_ev(const pushcpp::ConnectionEvent ev);
 void er_ev(const int code, const std::string &msg);
 
-pushcpp pp("my-api-key", cn_ev, er_ev);
+pushcpp pp("my-app-key", "eu", cn_ev, er_ev);
 
 void cn_ev(const pushcpp::ConnectionEvent ev)
 {
 	printf("ConnectEvent: %d\n", ev);
-	pp.send("channel", "pusher:subscribe", "lol");
+	//pp.send("channel", "pusher:subscribe", "lol");
 }
 
 void er_ev(const int code, const std::string &msg)
@@ -46,7 +46,7 @@ void sub_ev(
 
 	// for (auto it = ChannelData
 
-	pp.unsubscribe(channel);
+	// pp.unsubscribe(channel);
 
 	cd = pp.subscriptions();
 
@@ -67,7 +67,7 @@ void sub_ev(
 
 int main()
 {
-	pp.subscribe("my_channel", sub_ev);
+	pp.subscribe("my-channel", sub_ev);
 
 	pp.connect();
 
