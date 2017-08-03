@@ -2,6 +2,7 @@
 
 pushcpp::pushcpp(
 	const string &appKey,
+	const string &cluster,
 	ConnectionEventHandler ch,
 	ErrorEventHandler eh
 )
@@ -9,7 +10,7 @@ pushcpp::pushcpp(
 	this->m_connectionEventHandler = ch;
 	this->m_errorEventHandler = eh;
 	stringstream str;
-	str << "ws://ws.pusherapp.com:80/app/";
+	str << "ws://ws-" << cluster << ".pusher.com:80/app/";
 	str << appKey;
 	str << "?client=pushcpp&version=1.0&protocol=5";
 	m_url = str.str();
