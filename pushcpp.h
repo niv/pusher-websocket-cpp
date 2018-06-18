@@ -4,7 +4,8 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
-#include <thread>
+#include <utility>
+#include <functional>
 
 class pushcpp
 {
@@ -13,16 +14,6 @@ public:
 		CONNECTED       = 0,
 		DISCONNECTED    = 1
 	};
-
-	typedef void (*ConnectionEventHandler)(
-		const ConnectionEvent ce
-	);
-
-	typedef void (*ErrorEventHandler)(
-		const int code,
-		const std::string &message
-	);
-
 	typedef void (*ChannelEventHandler)(
 		const std::string &channel,
 		const std::string &event,
@@ -59,7 +50,9 @@ public:
 	struct ChannelData {
 		bool subscribed = false;
 		ChannelAuthHandler authHandler;
-		std::set<ChannelEventHandler> eventHandlers;
+		std::vector<std::function<void(const std::string&,
+									   const std::string&,
+									   const std::string&)>> eventHandlers;
 		std::set<std::string> presenceMemberIds;
 
 		void clear()
@@ -75,8 +68,9 @@ public:
 	 */
 	pushcpp(
 		const std::string &appKey,
-		ConnectionEventHandler ch = NULL,
-		ErrorEventHandler eh = NULL
+		std::function<void(const ConnectionEvent ce)> ch = nullptr,
+		std::function<void(const int, const std::string&)> eh = nullptr,
+		const std::string &cluster = ""
 	);
 
 	/**
@@ -99,13 +93,6 @@ public:
 	void disconnect(bool wait = false);
 
 	/**
-	 * Join against the running thread after calling connect().
-	 * A helper for testing this library or if you want to use it standalone
-	 * by blocking on the event loop.
-	 */
-	void join();
-
-	/**
 	 * Subscribe to a channel. The given event handler
 	 * will be called when a channel receives a message.
 	 *
@@ -123,7 +110,9 @@ public:
 		 * This handler receives all channel events, including
 		 * internal ones, in case you want to act on them.
 		 */
-		ChannelEventHandler event,
+		 std::function<void(const std::string&,
+ 						    const std::string&,
+ 						    const std::string&)> event,
 		/**
 		 * This is called for authentication requests as described
 		 * above. presence- and private- channels require this.
@@ -187,6 +176,7 @@ public:
 	{
 		return m_socketId;
 	}
+	void Execute();
 
 private:
 	// Dont allow copying.
@@ -201,8 +191,6 @@ private:
 	// The current connection, if any!
 	void *m_websocket = NULL;
 
-	std::thread * m_eventThread = NULL;
-	void EventThread();
 	void WS_Dispatch(const std::string & message);
 
 	/* Send a subscription request to Pusher. You do not need to call this
@@ -212,11 +200,12 @@ private:
 		bool subscribe,
 		const std::string &channel
 	);
-
-	ErrorEventHandler m_errorEventHandler;
-	ConnectionEventHandler m_connectionEventHandler;
+	std::function<void(const ConnectionEvent ce)> m_connectionEventHandler;
+	std::function<void(const int, const std::string&)> m_errorEventHandler;
 
 	// The complete list of channels we (want to) subscribe to.
 	// This includes channels we were rejected from.
 	std::unordered_map<std::string, ChannelData> m_channelData;
+
+	bool request_connection_;
 };
