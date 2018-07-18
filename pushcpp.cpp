@@ -1,12 +1,14 @@
 #include "pushcpp_internal.h"
 
 pushcpp::pushcpp(const string &appKey,
-				 std::function<void(const ConnectionEvent ce)> ch,
+				 std::function<void(const ConnectionEvent ce, const std::string&)> ch,
 			     std::function<void(const int, const std::string&)> eh,
+				 std::function<void(const PingEvent p)> pe,
 			 	 const std::string &cluster)
 				 : request_connection_(false) {
 	this->m_connectionEventHandler = ch;
 	this->m_errorEventHandler = eh;
+	this->m_pingEventHandler = pe;
 	stringstream str;
 	str << "ws://ws";
 	if (!cluster.empty()) {
@@ -21,6 +23,7 @@ pushcpp::pushcpp(const string &appKey,
 void pushcpp::connect()
 {
 	request_connection_ = true;
+	m_wantDisconnect = false;
 }
 
 bool pushcpp::connected() const

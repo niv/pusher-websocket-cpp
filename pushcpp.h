@@ -14,6 +14,9 @@ public:
 		CONNECTED       = 0,
 		DISCONNECTED    = 1
 	};
+	enum class PingEvent {
+		PING = 1,
+	};
 	typedef void (*ChannelEventHandler)(
 		const std::string &channel,
 		const std::string &event,
@@ -68,8 +71,9 @@ public:
 	 */
 	pushcpp(
 		const std::string &appKey,
-		std::function<void(const ConnectionEvent ce)> ch = nullptr,
+		std::function<void(const ConnectionEvent ce, const std::string&)> ch = nullptr,
 		std::function<void(const int, const std::string&)> eh = nullptr,
+		std::function<void(const PingEvent p)> pe = nullptr,
 		const std::string &cluster = ""
 	);
 
@@ -200,8 +204,9 @@ private:
 		bool subscribe,
 		const std::string &channel
 	);
-	std::function<void(const ConnectionEvent ce)> m_connectionEventHandler;
+	std::function<void(const ConnectionEvent ce, const std::string&)> m_connectionEventHandler;
 	std::function<void(const int, const std::string&)> m_errorEventHandler;
+	std::function<void(const PingEvent p)> m_pingEventHandler;
 
 	// The complete list of channels we (want to) subscribe to.
 	// This includes channels we were rejected from.

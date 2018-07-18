@@ -19,7 +19,15 @@ void pushcpp::Execute() {
 				WS_Dispatch(msg);
 			});
 			if (m_wantDisconnect) {
+				std::cout << "pusher-WebSocket: disconnecting." << std::endl;
 				ws->close();
+				this->m_socketId = "";
+				for (auto it = m_channelData.begin(); it != m_channelData.end(); it++) {
+					it->second.clear();
+				}
+				if (m_connectionEventHandler) {
+					m_connectionEventHandler(ConnectionEvent::DISCONNECTED, "");
+				}
 				request_connection_ = false;
 			}
 			return;
@@ -30,7 +38,7 @@ void pushcpp::Execute() {
 			it->second.clear();
 		}
 		if (m_connectionEventHandler) {
-			m_connectionEventHandler(ConnectionEvent::DISCONNECTED);
+			m_connectionEventHandler(ConnectionEvent::DISCONNECTED, "");
 		}
 		if (m_wantDisconnect) {
 			m_wantDisconnect = false;
