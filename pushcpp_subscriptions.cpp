@@ -2,15 +2,18 @@
 
 bool pushcpp::subscribe(
 	const string &channel,
-	ChannelEventHandler event,
+	std::function<void(const std::string&,
+					   const std::string&,
+					   const std::string&)> event,
 	ChannelAuthHandler auth
 )
 {
 	ChannelData d = m_channelData[channel];
-
-	if (event != NULL)
-		d.eventHandlers.insert(event);
-
+	std::cout << "Debug" << std::endl;
+	if (event != NULL) {
+		std::cout << "Debug" << std::endl;
+		d.eventHandlers.emplace_back(event);
+	}
 	if (auth != NULL)
 		d.authHandler = auth;
 	else

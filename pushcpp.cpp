@@ -1,26 +1,29 @@
 #include "pushcpp_internal.h"
 
-pushcpp::pushcpp(
-	const string &appKey,
-	ConnectionEventHandler ch,
-	ErrorEventHandler eh
-)
-{
+pushcpp::pushcpp(const string &appKey,
+				 std::function<void(const ConnectionEvent ce, const std::string&)> ch,
+			     std::function<void(const int, const std::string&)> eh,
+				 std::function<void(const PingEvent p)> pe,
+			 	 const std::string &cluster)
+				 : request_connection_(false) {
 	this->m_connectionEventHandler = ch;
 	this->m_errorEventHandler = eh;
+	this->m_pingEventHandler = pe;
 	stringstream str;
-	str << "ws://ws.pusherapp.com:80/app/";
+	str << "ws://ws";
+	if (!cluster.empty()) {
+		str << "-";
+		str << cluster;
+	}
+	str << ".pusher.com:80/app/";
 	str << appKey;
 	str << "?client=pushcpp&version=1.0&protocol=5";
 	m_url = str.str();
 }
-
 void pushcpp::connect()
 {
-	DEBUG("Connecting.");
-	assert(!this->m_eventThread);
-	m_eventThread = new thread(&pushcpp::EventThread, this);
-	assert(this->m_eventThread);
+	request_connection_ = true;
+	m_wantDisconnect = false;
 }
 
 bool pushcpp::connected() const
@@ -35,15 +38,6 @@ bool pushcpp::connected() const
 void pushcpp::disconnect(bool wait)
 {
 	m_wantDisconnect = true;
-	if (wait && m_eventThread)
-		m_eventThread->join();
-}
-
-void pushcpp::join()
-{
-	assert(this->m_eventThread);
-	DEBUG("joining!");
-	m_eventThread->join();
 }
 
 bool pushcpp::sendRaw(const string &raw)
@@ -80,4 +74,3 @@ bool pushcpp::send(
 	free(dumped);
 	return ret;
 }
-

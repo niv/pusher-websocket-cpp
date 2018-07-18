@@ -23,7 +23,11 @@ void pushcpp::WS_Dispatch(const string & message)
 	if (event == "pusher:connection_established") {
 		json_t *jdata = json_loadb(sdata.data(), sdata.size(), 0, &error);
 		assert(jdata); // should never fail unless pusher backend breaks
+		json_t *jdata_conn = json_object_get(json, "data");
+		string data_conn = "";
 
+		if (json_is_string(jdata_conn))
+			data_conn = json_string_value(json_object_get(json, "data"));
 		this->m_socketId = json_string_value(json_object_get(jdata, "socket_id"));
 		DEBUG("our socket id is: %s", this->m_socketId.c_str());
 
@@ -37,7 +41,7 @@ void pushcpp::WS_Dispatch(const string & message)
 		}
 
 		if (m_connectionEventHandler)
-			m_connectionEventHandler(ConnectionEvent::CONNECTED);
+			m_connectionEventHandler(ConnectionEvent::CONNECTED, data_conn);
 
 		json_decref(json);
 		json_decref(jdata);
@@ -94,8 +98,10 @@ void pushcpp::WS_Dispatch(const string & message)
 		// return;
 	}
 
-	if (event == "pusher:ping") {
-		send("", "pusher:pong", "");
+	if (event == "pusher:pong") {
+		//send("", "pusher:pong", "");
+		if (m_pingEventHandler)
+			m_pingEventHandler(PingEvent::PING);
 		json_decref(json);
 		return;
 	}
